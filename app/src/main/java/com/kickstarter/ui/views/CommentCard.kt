@@ -224,5 +224,5 @@ enum class CommentCardStatus(val commentCardStatus: Int) {
     RE_TRYING_TO_POST(4), // trying to post comment
     POSTING_COMMENT_COMPLETED_SUCCESSFULLY(5), // trying to post comment,
     TRYING_TO_POST(6), // comments without reply view
-    COMMENT_REPLY_FOR_LOGIN_BACKED_USERS(7), // comments without reply view
+    COMMENT_REPLY_FOR_LOGIN_BACKED_USERS(7), // represents a reply comment, without a reply button
 }
