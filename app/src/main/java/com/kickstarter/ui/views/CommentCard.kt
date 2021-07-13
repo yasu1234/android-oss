@@ -120,7 +120,8 @@ class CommentCard @JvmOverloads constructor(
             cardCommentStatus == CommentCardStatus.FAILED_TO_SEND_COMMENT ||
             cardCommentStatus == CommentCardStatus.RE_TRYING_TO_POST ||
             cardCommentStatus == CommentCardStatus.POSTING_COMMENT_COMPLETED_SUCCESSFULLY ||
-            cardCommentStatus == CommentCardStatus.TRYING_TO_POST
+            cardCommentStatus == CommentCardStatus.TRYING_TO_POST ||
+            cardCommentStatus == CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS
 
         if (cardCommentStatus == CommentCardStatus.DELETED_COMMENT) {
             binding.commentBody.isInvisible = true
@@ -223,4 +224,5 @@ enum class CommentCardStatus(val commentCardStatus: Int) {
     RE_TRYING_TO_POST(4), // trying to post comment
     POSTING_COMMENT_COMPLETED_SUCCESSFULLY(5), // trying to post comment,
     TRYING_TO_POST(6), // comments without reply view
+    COMMENT_REPLY_FOR_LOGIN_BACKED_USERS(7), // comments without reply view
 }

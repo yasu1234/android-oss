@@ -177,9 +177,7 @@ class ThreadActivity :
         return Pair.create(R.anim.fade_in_slide_in_left, R.anim.slide_out_right)
     }
 
-    override fun onRetryViewClicked(comment: Comment) {
-        TODO("Not yet implemented")
-    }
+    override fun onRetryViewClicked(comment: Comment) { }
 
     override fun onReplyButtonClicked(comment: Comment) {
     }

@@ -306,7 +306,7 @@ interface CommentsViewHolderViewModel {
                 .delay(3000, TimeUnit.MILLISECONDS)
                 .compose(bindToLifecycle())
                 .subscribe {
-                    this.commentCardStatus.onNext(CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS)
+                    this.commentCardStatus.onNext(if (isCommentReply.hasValue()) CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS else CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS )
                 }
         }
 
