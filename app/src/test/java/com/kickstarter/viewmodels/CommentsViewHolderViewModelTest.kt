@@ -12,6 +12,7 @@ import com.kickstarter.mock.services.MockApolloClient
 import com.kickstarter.models.Comment
 import com.kickstarter.services.mutations.PostCommentData
 import com.kickstarter.ui.data.CommentCardData
+import com.kickstarter.ui.views.CommentCard
 import com.kickstarter.ui.views.CommentCardStatus
 import org.joda.time.DateTime
 import org.junit.Test
@@ -362,6 +363,119 @@ class CommentsViewHolderViewModelTest : KSRobolectricTestCase() {
         )
 
         this.commentSuccessfullyPosted.assertNoValues()
+    }
+
+    @Test
+    fun testRetrySendComment_whenReply_shouldSendCommentReplyStatus() {
+        val currentUser = UserFactory.user().toBuilder().id(1).build()
+        val reply = CommentFactory.reply(createdAt = createdAt)
+        val commentCardData = CommentCardData.builder()
+            .comment(reply)
+            .project(ProjectFactory.initialProject())
+            .commentableId(ProjectFactory.initialProject().id().toString())
+            .commentCardState(CommentCardStatus.TRYING_TO_POST.commentCardStatus)
+            .build()
+
+        var env = environment().toBuilder().apolloClient(object : MockApolloClient() {
+            override fun createComment(comment: PostCommentData): Observable<Comment> {
+                return Observable.error(Throwable())
+            }
+        })
+            .scheduler(testScheduler)
+            .currentUser(MockCurrentUser(currentUser))
+            .build()
+
+        setUpEnvironment(env)
+
+        this.vm.inputs.configureWith(commentCardData)
+
+        testScheduler.advanceTimeBy(2, TimeUnit.SECONDS)
+
+        this.vm.inputs.onRetryViewClicked()
+
+        testScheduler.advanceTimeBy(2, TimeUnit.SECONDS)
+
+        this.commentCardStatus.assertValues(
+            CommentCardStatus.TRYING_TO_POST,
+            CommentCardStatus.FAILED_TO_SEND_COMMENT,
+            CommentCardStatus.RE_TRYING_TO_POST,
+            CommentCardStatus.FAILED_TO_SEND_COMMENT,
+        )
+
+        this.commentSuccessfullyPosted.assertNoValues()
+
+        env = environment().toBuilder()
+            .apolloClient(object : MockApolloClient() {
+                override fun createComment(comment: PostCommentData): Observable<Comment> {
+                    return Observable.just(reply)
+                }
+            })
+            .currentUser(MockCurrentUser(currentUser))
+            .build()
+        setUpEnvironment(env)
+
+        this.vm.inputs.onRetryViewClicked()
+
+        testScheduler.advanceTimeBy(4, TimeUnit.SECONDS)
+
+//        this.commentCardStatus.assertValues(
+//            CommentCardStatus.TRYING_TO_POST,
+//            CommentCardStatus.FAILED_TO_SEND_COMMENT,
+//            CommentCardStatus.RE_TRYING_TO_POST,
+//            CommentCardStatus.FAILED_TO_SEND_COMMENT,
+//            CommentCardStatus.TRYING_TO_POST,
+//            CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS
+//        )
+
+        this.isCommentReply.assertValue(null)
+
+        this.commentSuccessfullyPosted.assertValue(reply)
+    }
+
+    @Test
+    fun whenCommentIsReply_retrySendsReplyStatus() {
+        val currentUser = UserFactory.user().toBuilder().id(1).build()
+        val reply = CommentFactory.reply(createdAt = createdAt)
+        val commentCardData = CommentCardData.builder()
+            .comment(reply)
+            .project(ProjectFactory.initialProject())
+            .commentableId(ProjectFactory.initialProject().id().toString())
+            .commentCardState(CommentCardStatus.TRYING_TO_POST.commentCardStatus)
+            .build()
+
+        val env = environment().toBuilder()
+            .apolloClient(object : MockApolloClient() {
+                override fun createComment(comment: PostCommentData): Observable<Comment> {
+                    return Observable.just(reply)
+                }
+            })
+            .currentUser(MockCurrentUser(currentUser))
+            .build()
+
+        setUpEnvironment(env)
+
+        this.vm.inputs.configureWith(commentCardData)
+
+        testScheduler.advanceTimeBy(2, TimeUnit.SECONDS)
+
+        this.vm.inputs.onRetryViewClicked()
+
+        testScheduler.advanceTimeBy(8, TimeUnit.SECONDS)
+
+        this.commentCardStatus.assertValues(
+            CommentCardStatus.TRYING_TO_POST,
+            CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS,
+            CommentCardStatus.RE_TRYING_TO_POST,
+            CommentCardStatus.POSTING_COMMENT_COMPLETED_SUCCESSFULLY,
+            CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS,
+        )
+
+        this.isCommentReply.assertValue(null)
+
+        this.commentSuccessfullyPosted.assertValue(reply)
+
+//        testScheduler.advanceTimeBy(3, TimeUnit.SECONDS)
+
     }
 
     @Test

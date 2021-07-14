@@ -150,7 +150,7 @@ interface CommentsViewHolderViewModel {
                     Pair(requireNotNull(it.first), requireNotNull(it.first.project))
                 }
 
-            postComment(commentData, internalError)
+            postComment(commentData, internalError, environment)
 
             this.internalError
                 .compose(bindToLifecycle())
@@ -265,7 +265,7 @@ interface CommentsViewHolderViewModel {
          * Handles the logic for posting comments (new ones, and the retry attempts)
          * @param commentData will emmit only in case we need to post a new comment
          */
-        private fun postComment(commentData: Observable<Pair<CommentCardData, Project>>, errorObservable: BehaviorSubject<Throwable>) {
+        private fun postComment(commentData: Observable<Pair<CommentCardData, Project>>, errorObservable: BehaviorSubject<Throwable>, environment: Environment) {
             val postCommentData = commentData
                 .map {
                     Pair(
@@ -303,7 +303,7 @@ interface CommentsViewHolderViewModel {
                 }.doOnNext {
                     this.commentCardStatus.onNext(CommentCardStatus.POSTING_COMMENT_COMPLETED_SUCCESSFULLY)
                 }
-                .delay(3000, TimeUnit.MILLISECONDS)
+                .delay(1, TimeUnit.SECONDS, environment.scheduler())
                 .compose(bindToLifecycle())
                 .subscribe {
                     this.commentCardStatus.onNext(if (isCommentReply.hasValue()) CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS else CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS )
