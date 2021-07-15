@@ -12,7 +12,6 @@ import com.kickstarter.mock.services.MockApolloClient
 import com.kickstarter.models.Comment
 import com.kickstarter.services.mutations.PostCommentData
 import com.kickstarter.ui.data.CommentCardData
-import com.kickstarter.ui.views.CommentCard
 import com.kickstarter.ui.views.CommentCardStatus
 import org.joda.time.DateTime
 import org.junit.Test
@@ -475,7 +474,6 @@ class CommentsViewHolderViewModelTest : KSRobolectricTestCase() {
         this.commentSuccessfullyPosted.assertValue(reply)
 
 //        testScheduler.advanceTimeBy(3, TimeUnit.SECONDS)
-
     }
 
     @Test

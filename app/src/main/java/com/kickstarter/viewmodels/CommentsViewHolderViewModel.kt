@@ -90,6 +90,9 @@ interface CommentsViewHolderViewModel {
 
         /** Emits when the execution of the post mutation is successful, it will be used to update the main list state for this comment**/
         fun isSuccessfullyPosted(): Observable<Comment>
+
+        /** Emits when the execution of the post mutation is error, it will be used to update the main list state for this comment**/
+        fun isFailedToPost(): Observable<CommentCardData>
     }
 
     class ViewModel(environment: Environment) : ActivityViewModel<CommentCardViewHolder>(environment), Inputs, Outputs {
@@ -115,6 +118,7 @@ interface CommentsViewHolderViewModel {
         private val isCommentEnableThreads = PublishSubject.create<Boolean>()
         private val internalError = BehaviorSubject.create<Throwable>()
         private val postedSuccessfully = BehaviorSubject.create<Comment>()
+        private val failedToPosted = BehaviorSubject.create<CommentCardData>()
 
         private val isCommentReply = BehaviorSubject.create<Void>()
 
@@ -153,10 +157,12 @@ interface CommentsViewHolderViewModel {
             postComment(commentData, internalError, environment)
 
             this.internalError
+                .compose(combineLatestPair(commentData))
                 .compose(bindToLifecycle())
                 .delay(1, TimeUnit.SECONDS, environment.scheduler())
                 .subscribe {
                     this.commentCardStatus.onNext(CommentCardStatus.FAILED_TO_SEND_COMMENT)
+                    this.failedToPosted.onNext(it.second.first.toBuilder().commentCardState(CommentCardStatus.FAILED_TO_SEND_COMMENT.commentCardStatus).build())
                 }
         }
 
@@ -306,7 +312,7 @@ interface CommentsViewHolderViewModel {
                 .delay(1, TimeUnit.SECONDS, environment.scheduler())
                 .compose(bindToLifecycle())
                 .subscribe {
-                    this.commentCardStatus.onNext(if (isCommentReply.hasValue()) CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS else CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS )
+                    this.commentCardStatus.onNext(if (isCommentReply.hasValue()) CommentCardStatus.COMMENT_REPLY_FOR_LOGIN_BACKED_USERS else CommentCardStatus.COMMENT_FOR_LOGIN_BACKED_USERS)
                 }
         }
 
@@ -327,7 +333,7 @@ interface CommentsViewHolderViewModel {
                 shouldPost = it.id() < 0 && it.author() == currentUser
             }
 
-            shouldPost = shouldPost && status == CommentCardStatus.TRYING_TO_POST.commentCardStatus
+            shouldPost = shouldPost && (status == CommentCardStatus.TRYING_TO_POST.commentCardStatus || status == CommentCardStatus.FAILED_TO_SEND_COMMENT.commentCardStatus)
 
             return shouldPost
         }
@@ -426,5 +432,7 @@ interface CommentsViewHolderViewModel {
         override fun isCommentReply(): Observable<Void> = this.isCommentReply
 
         override fun isSuccessfullyPosted(): Observable<Comment> = this.postedSuccessfully
+
+        override fun isFailedToPost(): Observable<CommentCardData> = this.failedToPosted
     }
 }
