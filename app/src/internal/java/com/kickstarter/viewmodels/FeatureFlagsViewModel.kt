@@ -7,7 +7,6 @@ import com.kickstarter.libs.CurrentConfigType
 import com.kickstarter.libs.CurrentUserType
 import com.kickstarter.libs.Environment
 import com.kickstarter.libs.ExperimentsClientType
-import com.kickstarter.libs.preferences.StringPreferenceType
 import com.kickstarter.libs.utils.ConfigFeatureFlagName.SEGMENT_ENABLED
 import com.kickstarter.libs.utils.extensions.setUserFeatureFlagsPrefWithFeatureFlag
 import com.kickstarter.model.FeatureFlagsModel
