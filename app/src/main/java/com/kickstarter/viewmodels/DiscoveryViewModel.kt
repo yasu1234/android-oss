@@ -42,6 +42,7 @@ import com.kickstarter.ui.viewholders.discoverydrawer.TopFilterViewHolder
 import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subjects.PublishSubject
+import timber.log.Timber
 
 interface DiscoveryViewModel {
     interface Inputs : DiscoveryDrawerAdapter.Delegate, DiscoveryPagerAdapter.Delegate {
@@ -267,6 +268,10 @@ interface DiscoveryViewModel {
 
             val paramsFromIntent = intent()
                 .flatMap { DiscoveryIntentMapper.params(it, apiClient) }
+
+            intent()
+                .compose(bindToLifecycle())
+                .subscribe { Timber.d("leigh%s", it.data.toString()) }
 
             val drawerParamsClicked = childFilterRowClick
                 .mergeWith(topFilterRowClick)

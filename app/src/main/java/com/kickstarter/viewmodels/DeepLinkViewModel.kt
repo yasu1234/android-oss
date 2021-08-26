@@ -3,6 +3,7 @@ package com.kickstarter.viewmodels
 import android.content.Intent
 import android.net.Uri
 import android.text.TextUtils
+import android.util.Log
 import android.util.Pair
 import com.kickstarter.libs.ActivityViewModel
 import com.kickstarter.libs.CurrentUserType
@@ -14,7 +15,7 @@ import com.kickstarter.libs.utils.Secrets
 import com.kickstarter.libs.utils.UrlUtils.appendRefTag
 import com.kickstarter.libs.utils.UrlUtils.refTag
 import com.kickstarter.libs.utils.extensions.isCheckoutUri
-import com.kickstarter.libs.utils.extensions.isDiscoverPlacesPath
+import com.kickstarter.libs.utils.extensions.isDiscoverPath
 import com.kickstarter.libs.utils.extensions.isDiscoverSortParam
 import com.kickstarter.libs.utils.extensions.isProjectPreviewUri
 import com.kickstarter.libs.utils.extensions.isProjectUri
@@ -25,6 +26,7 @@ import com.kickstarter.ui.activities.DeepLinkActivity
 import rx.Notification
 import rx.Observable
 import rx.subjects.BehaviorSubject
+import timber.log.Timber
 
 interface DeepLinkViewModel {
     interface Outputs {
@@ -32,7 +34,7 @@ interface DeepLinkViewModel {
         fun startBrowser(): Observable<String>
 
         /** Emits when we should start the [com.kickstarter.ui.activities.DiscoveryActivity].  */
-        fun startDiscoveryActivity(): Observable<Void>
+        fun startDiscoveryActivity(): Observable<Uri>
 
         /** Emits when we should start the [com.kickstarter.ui.activities.ProjectActivity].  */
         fun startProjectActivity(): Observable<Uri>
@@ -48,7 +50,7 @@ interface DeepLinkViewModel {
         ActivityViewModel<DeepLinkActivity?>(environment), Outputs {
 
         private val startBrowser = BehaviorSubject.create<String>()
-        private val startDiscoveryActivity = BehaviorSubject.create<Void>()
+        private val startDiscoveryActivity = BehaviorSubject.create<Uri>()
         private val startProjectActivity = BehaviorSubject.create<Uri>()
         private val startProjectActivityWithCheckout = BehaviorSubject.create<Uri>()
         private val updateUserPreferences = BehaviorSubject.create<Boolean>()
@@ -63,10 +65,14 @@ interface DeepLinkViewModel {
                 .ofType(Uri::class.java)
 
             uriFromIntent
+                .compose(bindToLifecycle())
+                .subscribe { Timber.d("leigh%s", it.toString()) }
+
+            uriFromIntent
                 .filter { it.isDiscoverSortParam(Secrets.WebEndpoint.PRODUCTION) }
-                .compose(Transformers.ignoreValues())
                 .compose(bindToLifecycle())
                 .subscribe {
+                    Timber.d("leigh is awesome")
                     startDiscoveryActivity.onNext(it)
                 }
 
@@ -127,6 +133,7 @@ interface DeepLinkViewModel {
                 .filter { !lastPathSegmentIsProjects(it) }
                 .filter { !it.isSettingsUrl() }
                 .filter { !it.isCheckoutUri(Secrets.WebEndpoint.PRODUCTION) }
+                .filter { !it.isDiscoverPath(Secrets.WebEndpoint.PRODUCTION) }
                 .filter { !it.isProjectUri(Secrets.WebEndpoint.PRODUCTION) }
 
             Observable.merge(projectPreview, unsupportedDeepLink)
@@ -167,7 +174,7 @@ interface DeepLinkViewModel {
 
         override fun startBrowser(): Observable<String> = startBrowser
 
-        override fun startDiscoveryActivity(): Observable<Void> = startDiscoveryActivity
+        override fun startDiscoveryActivity(): Observable<Uri> = startDiscoveryActivity
 
         override fun startProjectActivity(): Observable<Uri> = startProjectActivity
 

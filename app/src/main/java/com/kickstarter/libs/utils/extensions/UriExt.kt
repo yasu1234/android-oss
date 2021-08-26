@@ -2,9 +2,11 @@
 package com.kickstarter.libs.utils.extensions
 
 import android.net.Uri
+import android.util.Log
 import com.kickstarter.libs.utils.ObjectUtils
 import com.kickstarter.libs.utils.Secrets
 import java.util.regex.Pattern
+import timber.log.Timber
 
 fun Uri.host(): String {
     return this.host ?: ""
@@ -66,9 +68,17 @@ fun Uri.isDiscoverPlacesPath(): Boolean {
 }
 
 fun Uri.isDiscoverSortParam(webEndpoint: String): Boolean {
-    return isKickstarterUri(webEndpoint) &&
+    Log.d("Leigh", (
             DISCOVER_SORT_PATTERN.matcher(path()).matches() &&
+            ObjectUtils.isNotNull(getQueryParameter("sort"))).toString())
+
+    return DISCOVER_SORT_PATTERN.matcher(path()).matches() &&
             ObjectUtils.isNotNull(getQueryParameter("sort"))
+}
+
+fun Uri.isDiscoverPath(webEndpoint: String): Boolean {
+    return isKickstarterUri(webEndpoint) &&
+            DISCOVER_PATTERN.matcher(path()).matches()
 }
 
 fun Uri.isHivequeenUri(webEndpoint: String): Boolean {
@@ -156,10 +166,12 @@ private val CHECKOUT_THANKS_PATTERN = Pattern.compile(
 private val DISCOVER_CATEGORIES_PATTERN = Pattern.compile("\\A\\/discover\\/categories\\/.*")
 
 // /discover/advanced?sort=param
-private val DISCOVER_SORT_PATTERN = Pattern.compile("\\A\\/discover\\/sort\\/advanced.*")
+private val DISCOVER_SORT_PATTERN = Pattern.compile("\\A\\/discover\\/advanced.*")
 
 // /discover/param
 private val DISCOVER_SCOPE_PATTERN = Pattern.compile("\\A\\/discover\\/([a-zA-Z0-9-_]+)\\z")
+
+private val DISCOVER_PATTERN= Pattern.compile("\\A\\/discover\\/([a-zA-Z0-9-_]+)\\z")
 
 // /discover/places/param
 private val DISCOVER_PLACES_PATTERN =
