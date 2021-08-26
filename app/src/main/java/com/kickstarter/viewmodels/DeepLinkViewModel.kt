@@ -14,6 +14,8 @@ import com.kickstarter.libs.utils.Secrets
 import com.kickstarter.libs.utils.UrlUtils.appendRefTag
 import com.kickstarter.libs.utils.UrlUtils.refTag
 import com.kickstarter.libs.utils.extensions.isCheckoutUri
+import com.kickstarter.libs.utils.extensions.isDiscoverPlacesPath
+import com.kickstarter.libs.utils.extensions.isDiscoverSortParam
 import com.kickstarter.libs.utils.extensions.isProjectPreviewUri
 import com.kickstarter.libs.utils.extensions.isProjectUri
 import com.kickstarter.libs.utils.extensions.isSettingsUrl
@@ -61,7 +63,7 @@ interface DeepLinkViewModel {
                 .ofType(Uri::class.java)
 
             uriFromIntent
-                .filter { lastPathSegmentIsProjects(it) }
+                .filter { it.isDiscoverSortParam(Secrets.WebEndpoint.PRODUCTION) }
                 .compose(Transformers.ignoreValues())
                 .compose(bindToLifecycle())
                 .subscribe {

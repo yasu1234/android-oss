@@ -65,6 +65,12 @@ fun Uri.isDiscoverPlacesPath(): Boolean {
     return DISCOVER_PLACES_PATTERN.matcher(path()).matches()
 }
 
+fun Uri.isDiscoverSortParam(webEndpoint: String): Boolean {
+    return isKickstarterUri(webEndpoint) &&
+            DISCOVER_SORT_PATTERN.matcher(path()).matches() &&
+            ObjectUtils.isNotNull(getQueryParameter("sort"))
+}
+
 fun Uri.isHivequeenUri(webEndpoint: String): Boolean {
     return isKickstarterUri(webEndpoint) && Secrets.RegExpPattern.HIVEQUEEN.matcher(host()).matches()
 }
@@ -148,6 +154,9 @@ private val CHECKOUT_THANKS_PATTERN = Pattern.compile(
 
 // /discover/categories/param
 private val DISCOVER_CATEGORIES_PATTERN = Pattern.compile("\\A\\/discover\\/categories\\/.*")
+
+// /discover/advanced?sort=param
+private val DISCOVER_SORT_PATTERN = Pattern.compile("\\A\\/discover\\/sort\\/advanced.*")
 
 // /discover/param
 private val DISCOVER_SCOPE_PATTERN = Pattern.compile("\\A\\/discover\\/([a-zA-Z0-9-_]+)\\z")
