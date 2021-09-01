@@ -2,6 +2,7 @@ package com.kickstarter.viewmodels
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.util.Pair
 import com.kickstarter.R
 import com.kickstarter.libs.ActivityViewModel
@@ -39,6 +40,7 @@ import com.kickstarter.ui.viewholders.discoverydrawer.LoggedInViewHolder
 import com.kickstarter.ui.viewholders.discoverydrawer.LoggedOutViewHolder
 import com.kickstarter.ui.viewholders.discoverydrawer.ParentFilterViewHolder
 import com.kickstarter.ui.viewholders.discoverydrawer.TopFilterViewHolder
+import java.util.concurrent.TimeUnit
 import rx.Observable
 import rx.subjects.BehaviorSubject
 import rx.subjects.PublishSubject
@@ -134,6 +136,9 @@ interface DiscoveryViewModel {
 
         /** Emits the error message from verify endpoint  */
         fun showErrorMessage(): Observable<String?>
+
+        /** Emits the error message from verify endpoint  */
+        fun sortFromIntent(): Observable<DiscoveryParams>
     }
 
     class ViewModel(environment: Environment) : ActivityViewModel<DiscoveryActivity?>(environment), Inputs, Outputs {
@@ -204,6 +209,7 @@ interface DiscoveryViewModel {
         private val updateToolbarWithParams = BehaviorSubject.create<DiscoveryParams>()
         private val successMessage = PublishSubject.create<String>()
         private val messageError = PublishSubject.create<String?>()
+        private val sortFromIntent = BehaviorSubject.create<DiscoveryParams>()
 
         init {
             buildCheck.bind(this, webClient)
@@ -267,11 +273,14 @@ interface DiscoveryViewModel {
                 .subscribe(messageError)
 
             val paramsFromIntent = intent()
-                .flatMap { DiscoveryIntentMapper.params(it, apiClient) }
+                .flatMap {
+                    DiscoveryIntentMapper.params(it, apiClient) }
 
             intent()
                 .compose(bindToLifecycle())
-                .subscribe { Timber.d("leigh%s", it.data.toString()) }
+                .subscribe {
+                    Log.d("leigh", "hello!")
+                }
 
             val drawerParamsClicked = childFilterRowClick
                 .mergeWith(topFilterRowClick)
@@ -286,15 +295,32 @@ interface DiscoveryViewModel {
 
             val pagerSelectedPage = pagerSetPrimaryPage.distinctUntilChanged()
 
+            val sortToTabOpen = Observable.merge(
+                pagerSelectedPage.map{ DiscoveryUtils.sortFromPosition(it)},
+                params.map { it.sort() }
+            )
+
             // Combine params with the selected sort position.
             val paramsWithSort = Observable.combineLatest(
                 params,
-                pagerSelectedPage.map { DiscoveryUtils.sortFromPosition(it) }
+                sortToTabOpen
             ) { p, s -> p.toBuilder().sort(s).build() }
 
-            paramsWithSort
+//            paramsWithSort
+//                .delay(3, TimeUnit.SECONDS, environment.scheduler())
+//                .compose(bindToLifecycle())
+//                .subscribe{
+//                    Log.d("leigh2", it.sort().toString() )
+//                    updateParamsForPage
+//                }
+
+            paramsFromIntent
+                .delay(10, TimeUnit.SECONDS, environment.scheduler())
                 .compose(bindToLifecycle())
-                .subscribe(updateParamsForPage)
+                .subscribe {
+                    Log.d("leigh3", it.sort().toString() )
+                    sortFromIntent
+                }
 
             paramsWithSort
                 .compose(Transformers.takePairWhen(sortClicked.map { DiscoveryUtils.sortFromPosition(it) }))
@@ -305,7 +331,10 @@ interface DiscoveryViewModel {
                     )
                 }
                 .compose(bindToLifecycle())
-                .subscribe { analyticEvents.trackDiscoverSortCTA(it.first, it.second) }
+                .subscribe {
+//                    Log.d("leigh analytic event", it.first.toString() + it.second.toString())
+                    analyticEvents.trackDiscoverSortCTA(it.first, it.second)
+                }
 
             paramsWithSort
                 .compose(Transformers.takeWhen(drawerParamsClicked))
@@ -531,5 +560,6 @@ interface DiscoveryViewModel {
         override fun updateToolbarWithParams(): Observable<DiscoveryParams> { return updateToolbarWithParams }
         override fun showSuccessMessage(): Observable<String> { return successMessage }
         override fun showErrorMessage(): Observable<String?> { return messageError }
+        override fun sortFromIntent(): Observable<DiscoveryParams> { return sortFromIntent }
     }
 }

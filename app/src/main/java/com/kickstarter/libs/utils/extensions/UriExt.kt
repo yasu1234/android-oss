@@ -67,7 +67,7 @@ fun Uri.isDiscoverPlacesPath(): Boolean {
     return DISCOVER_PLACES_PATTERN.matcher(path()).matches()
 }
 
-fun Uri.isDiscoverSortParam(webEndpoint: String): Boolean {
+fun Uri.isDiscoverSortParam(): Boolean {
     Log.d("Leigh", (
             DISCOVER_SORT_PATTERN.matcher(path()).matches() &&
             ObjectUtils.isNotNull(getQueryParameter("sort"))).toString())

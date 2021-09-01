@@ -66,13 +66,13 @@ interface DeepLinkViewModel {
 
             uriFromIntent
                 .compose(bindToLifecycle())
-                .subscribe { Timber.d("leigh%s", it.toString()) }
+                .subscribe { Timber.v("leigh%s", it.toString()) }
 
             uriFromIntent
-                .filter { it.isDiscoverSortParam(Secrets.WebEndpoint.PRODUCTION) }
+                .filter { it.isDiscoverSortParam() }
                 .compose(bindToLifecycle())
                 .subscribe {
-                    Timber.d("leigh is awesome")
+//                    Timber.v("leigh is awesome")
                     startDiscoveryActivity.onNext(it)
                 }
 

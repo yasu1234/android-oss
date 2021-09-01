@@ -3,6 +3,7 @@ package com.kickstarter.ui.activities
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import com.kickstarter.libs.BaseActivity
 import com.kickstarter.libs.RefTag
 import com.kickstarter.libs.qualifiers.RequiresActivityViewModel
@@ -29,7 +30,9 @@ class DeepLinkActivity : BaseActivity<DeepLinkViewModel.ViewModel?>() {
         viewModel.outputs.startDiscoveryActivity()
             .compose(bindToLifecycle())
             .compose(Transformers.observeForUI())
-            .subscribe { startDiscoveryActivity(it) }
+            .subscribe {
+                startDiscoveryActivity(it)
+            }
 
         viewModel.outputs.startProjectActivity()
             .compose(bindToLifecycle())
@@ -62,9 +65,7 @@ class DeepLinkActivity : BaseActivity<DeepLinkViewModel.ViewModel?>() {
     }
 
     private fun startDiscoveryActivity(uri: Uri) {
-            val discoveryIntent = Intent(this, DiscoveryActivity::class.java)
-                .setData(uri)
-            startActivity(discoveryIntent)
+            ApplicationUtils.startNewDiscoveryActivityWithUri(this, uri)
             finish()
     }
 

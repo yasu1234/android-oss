@@ -267,6 +267,10 @@
                     android:pathPrefix="/projects"
                     android:scheme="https" />
                 <data
+                    android:host="www.kickstarter.com"
+                    android:pathPrefix="/discover"
+                    android:scheme="https" />
+                <data
                     android:host="*.kickstarter.com"
                     android:pathPrefix="/settings/"
                     android:scheme="ksr" />

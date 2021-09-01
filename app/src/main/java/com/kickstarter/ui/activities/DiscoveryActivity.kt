@@ -4,6 +4,7 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.drawable.Animatable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.GravityCompat
@@ -53,6 +54,7 @@ class DiscoveryActivity : BaseActivity<DiscoveryViewModel.ViewModel>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("leigh", this.toString())
         binding = DiscoveryLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -93,7 +95,9 @@ class DiscoveryActivity : BaseActivity<DiscoveryViewModel.ViewModel>() {
         viewModel.outputs.updateParamsForPage()
             .compose(bindToLifecycle())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { pagerAdapter.takeParams(it) }
+            .subscribe {
+                pagerAdapter.takeParams(it)
+            }
 
         viewModel.outputs.clearPages()
             .compose(bindToLifecycle())
@@ -197,6 +201,13 @@ class DiscoveryActivity : BaseActivity<DiscoveryViewModel.ViewModel>() {
             .compose(bindToLifecycle())
             .compose(Transformers.observeForUI())
             .subscribe { this@DiscoveryActivity.showSuccessSnackBar(binding.discoveryAnchorView, it) }
+
+        viewModel.outputs.sortFromIntent()
+            .compose(bindToLifecycle())
+            .compose(Transformers.observeForUI())
+            .subscribe {
+                pagerAdapter.takeParams(it)
+            }
 
         viewModel.outputs.showErrorMessage()
             .compose(bindToLifecycle())
